@@ -88,7 +88,7 @@ class CPU:
             elif command == self.commands['PRN']:  # print value of register (operand_a)
                 print(f'Value: {self.reg[operand_a]}')
                 self.pc += 2
-            elif command == self.commands['HLT']:
+            elif command == self.commands['HLT']:  # stops running
                 running = False
                 self.pc += 1
                 print('Stopping...')
