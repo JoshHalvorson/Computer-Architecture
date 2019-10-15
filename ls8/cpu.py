@@ -11,32 +11,47 @@ class CPU:
         self.reg = [0] * 8
         self.ram = [0] * 256
         self.commands = {
-            'LDI': 0b10000010,
-            'PRN': 0b01000111,
-            'HLT': 0b00000001
+            'LDI': int("10000010", 2),
+            'PRN': int("01000111", 2),
+            'HLT': int("00000001", 2)
         }
 
-    def load(self):
+    def load(self, filename):
         """Load a program into memory."""
-
-        address = 0
-
+        # address = 0
         # For now, we've just hardcoded a program:
+        # program = [
+        #     # From print8.ls8
+        #     0b10000010, # LDI R0,8
+        #     0b00000000,
+        #     0b00001000,
+        #     0b01000111, # PRN R0
+        #     0b00000000,
+        #     0b00000001, # HLT
+        # ]
 
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
-
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
-
+        # for instruction in program:
+        #     self.ram[address] = instruction
+        #     address += 1
+        try:
+            address = 0
+            with open(filename) as f:
+                for line in f:
+                    # Process comments:
+                    # Ignore anything after a # symbol
+                    comment_split = line.split("#")
+                    # Convert any numbers from binary strings to integers
+                    num = comment_split[0].strip()
+                    try:
+                        val = int(num, 2)
+                    except ValueError:
+                        continue
+                    self.ram[address] = val
+                    address += 1
+                    # print(f"{val:08b}: {val:d}")
+        except FileNotFoundError:
+            print(f"{sys.argv[0]}: {sys.argv[1]} not found")
+            sys.exit(2)
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
