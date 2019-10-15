@@ -13,7 +13,8 @@ class CPU:
         self.commands = {
             'LDI': int("10000010", 2),
             'PRN': int("01000111", 2),
-            'HLT': int("00000001", 2)
+            'HLT': int("00000001", 2),
+            'MUL': int("10100010", 2),
         }
 
     def load(self, filename):
@@ -97,12 +98,16 @@ class CPU:
             command = self.ram[self.pc]
             operand_a = self.ram[self.pc + 1]
             operand_b = self.ram[self.pc + 2]
+            #print(f'command: {command}, operand_a: {operand_a}, operand_b: {operand_b}')
             if command == self.commands['LDI']:  # set register (operand_a) to value (operand_b)
                 self.reg[operand_a] = operand_b
                 self.pc += 3
             elif command == self.commands['PRN']:  # print value of register (operand_a)
                 print(f'Value: {self.reg[operand_a]}')
                 self.pc += 2
+            elif command == self.commands['MUL']: # multiply value of two registers (operand_a and operand_b) and stores in operand_a
+                self.reg[operand_a] *= self.reg[operand_b]
+                self.pc += 3
             elif command == self.commands['HLT']:  # stops running
                 running = False
                 self.pc += 1
