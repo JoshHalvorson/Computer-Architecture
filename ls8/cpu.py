@@ -2,6 +2,7 @@
 
 import sys
 
+
 class CPU:
     """Main CPU class."""
 
@@ -15,6 +16,12 @@ class CPU:
             'PRN': int("01000111", 2),
             'HLT': int("00000001", 2),
             'MUL': int("10100010", 2),
+        }
+        self.branchtable = {
+            self.commands['LDI']: self.ldi,
+            self.commands['PRN']: self.prn,
+            self.commands['HLT']: self.hlt,
+            self.commands['MUL']: self.mul,
         }
 
     def load(self, filename):
@@ -59,7 +66,9 @@ class CPU:
 
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
-        #elif op == "SUB": etc
+        # elif op == "SUB": etc
+        elif op == 'MUL':
+            self.reg[reg_a] *= self.reg[reg_b]
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -71,8 +80,8 @@ class CPU:
 
         print(f"TRACE: %02X | %02X %02X %02X |" % (
             self.pc,
-            #self.fl,
-            #self.ie,
+            # self.fl,
+            # self.ie,
             self.ram_read(self.pc),
             self.ram_read(self.pc + 1),
             self.ram_read(self.pc + 2)
@@ -91,27 +100,53 @@ class CPU:
         # writes the given value into given address
         self.ram[address] = value
 
+    def ldi(self, reg_a, value):
+        self.reg[reg_a] = value
+        self.pc += 3
+
+    def prn(self, reg_a):
+        print(f'Value: {self.reg[reg_a]}')
+        self.pc += 2
+
+    def mul(self, reg_a, reg_b):
+        self.alu('MUL', reg_a, reg_b)
+        self.pc += 3
+
+    def hlt(self):
+        self.pc += 1
+        print('Stopping...')
+        return False
+
     def run(self):
         """Run the CPU."""
         running = True
         while running:
             command = self.ram[self.pc]
+            num_params = int(bin(command >> 6).replace("0b", ""), 2)
             operand_a = self.ram[self.pc + 1]
             operand_b = self.ram[self.pc + 2]
-            #print(f'command: {command}, operand_a: {operand_a}, operand_b: {operand_b}')
-            if command == self.commands['LDI']:  # set register (operand_a) to value (operand_b)
-                self.reg[operand_a] = operand_b
-                self.pc += 3
-            elif command == self.commands['PRN']:  # print value of register (operand_a)
-                print(f'Value: {self.reg[operand_a]}')
-                self.pc += 2
-            elif command == self.commands['MUL']: # multiply value of two registers (operand_a and operand_b) and stores in operand_a
-                self.reg[operand_a] *= self.reg[operand_b]
-                self.pc += 3
-            elif command == self.commands['HLT']:  # stops running
-                running = False
-                self.pc += 1
-                print('Stopping...')
+            # print(f'command: {command}, operand_a: {operand_a}, operand_b: {operand_b}')
+            if num_params == 2:
+                self.branchtable[command](operand_a, operand_b)
+            elif num_params == 1:
+                self.branchtable[command](operand_a)
             else:
-                running = False
-                print(f'Unknown command: {command}')
+                running = self.branchtable[command]()
+            # if command == self.commands['LDI']:  # set register (operand_a) to value (operand_b)
+            #     self.reg[operand_a] = operand_b
+            #     self.pc += 3
+            # elif command == self.commands['PRN']:  # print value of register (operand_a)
+            #     print(f'Value: {self.reg[operand_a]}')
+            #     self.pc += 2
+            # elif command == self.commands[
+            #     'MUL']:  # multiply value of two registers (operand_a and operand_b) and stores in operand_a
+            #     # self.reg[operand_a] *= self.reg[operand_b]
+            #     self.alu('MUL', operand_a, operand_b)
+            #     self.pc += 3
+            # elif command == self.commands['HLT']:  # stops running
+            #     running = False
+            #     self.pc += 1
+            #     print('Stopping...')
+            # else:
+            #     running = False
+            #     print(f'Unknown command: {command}')
