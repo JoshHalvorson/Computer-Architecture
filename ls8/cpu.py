@@ -11,17 +11,22 @@ class CPU:
         self.pc = 0
         self.reg = [0] * 8
         self.ram = [0] * 256
+        self.SP = 7
         self.commands = {
             'LDI': int("10000010", 2),
             'PRN': int("01000111", 2),
             'HLT': int("00000001", 2),
             'MUL': int("10100010", 2),
+            'PUSH': int("01000101", 2),
+            'POP': int("01000110", 2),
         }
         self.branchtable = {
             self.commands['LDI']: self.ldi,
             self.commands['PRN']: self.prn,
             self.commands['HLT']: self.hlt,
             self.commands['MUL']: self.mul,
+            self.commands['PUSH']: self.push,
+            self.commands['POP']: self.pop,
         }
 
     def load(self, filename):
@@ -116,6 +121,22 @@ class CPU:
         self.pc += 1
         print('Stopping...')
         return False
+
+    def push(self, reg):
+        val = self.reg[reg]
+        # Decrement the SP.
+        self.reg[self.SP] -= 1
+        # Copy the value in the given register to the address pointed to by SP.
+        self.ram[self.reg[self.SP]] = val
+        self.pc += 2
+
+    def pop(self, reg):
+        val = self.ram[self.reg[self.SP]]
+        # Copy the value from the address pointed to by SP to the given register.
+        self.reg[reg] = val
+        # Increment SP.
+        self.reg[self.SP] += 1
+        self.pc += 2
 
     def run(self):
         """Run the CPU."""
