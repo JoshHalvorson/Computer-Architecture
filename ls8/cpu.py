@@ -31,21 +31,6 @@ class CPU:
 
     def load(self, filename):
         """Load a program into memory."""
-        # address = 0
-        # For now, we've just hardcoded a program:
-        # program = [
-        #     # From print8.ls8
-        #     0b10000010, # LDI R0,8
-        #     0b00000000,
-        #     0b00001000,
-        #     0b01000111, # PRN R0
-        #     0b00000000,
-        #     0b00000001, # HLT
-        # ]
-
-        # for instruction in program:
-        #     self.ram[address] = instruction
-        #     address += 1
         try:
             address = 0
             with open(filename) as f:
@@ -124,17 +109,13 @@ class CPU:
 
     def push(self, reg):
         val = self.reg[reg]
-        # Decrement the SP.
         self.reg[self.SP] -= 1
-        # Copy the value in the given register to the address pointed to by SP.
         self.ram[self.reg[self.SP]] = val
         self.pc += 2
 
     def pop(self, reg):
         val = self.ram[self.reg[self.SP]]
-        # Copy the value from the address pointed to by SP to the given register.
         self.reg[reg] = val
-        # Increment SP.
         self.reg[self.SP] += 1
         self.pc += 2
 
@@ -146,28 +127,9 @@ class CPU:
             num_params = int(bin(command >> 6).replace("0b", ""), 2)
             operand_a = self.ram[self.pc + 1]
             operand_b = self.ram[self.pc + 2]
-            # print(f'command: {command}, operand_a: {operand_a}, operand_b: {operand_b}')
             if num_params == 2:
                 self.branchtable[command](operand_a, operand_b)
             elif num_params == 1:
                 self.branchtable[command](operand_a)
             else:
                 running = self.branchtable[command]()
-            # if command == self.commands['LDI']:  # set register (operand_a) to value (operand_b)
-            #     self.reg[operand_a] = operand_b
-            #     self.pc += 3
-            # elif command == self.commands['PRN']:  # print value of register (operand_a)
-            #     print(f'Value: {self.reg[operand_a]}')
-            #     self.pc += 2
-            # elif command == self.commands[
-            #     'MUL']:  # multiply value of two registers (operand_a and operand_b) and stores in operand_a
-            #     # self.reg[operand_a] *= self.reg[operand_b]
-            #     self.alu('MUL', operand_a, operand_b)
-            #     self.pc += 3
-            # elif command == self.commands['HLT']:  # stops running
-            #     running = False
-            #     self.pc += 1
-            #     print('Stopping...')
-            # else:
-            #     running = False
-            #     print(f'Unknown command: {command}')
